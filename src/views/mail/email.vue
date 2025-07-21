@@ -36,7 +36,28 @@
 
       <div class="mail-list">
         <el-table :data="mails" style="width: 100%">
-          <el-table-column prop="from" label="发件人" width="200" />
+          <el-table-column prop="fromAddress" label="发件人" width="250">
+            <template #default="{ row }">
+              <el-tooltip placement="top" :show-after="1000">
+                <template #content>
+                  <div style="display: flex; flex-direction: column; gap: 8px">
+                    <div style="cursor: pointer" @click="addCustomer(row)">
+                      <el-icon><CirclePlus /></el-icon>
+                      <span style="margin-left: 4px">增加客户</span>
+                    </div>
+                    <div style="cursor: pointer" @click="addLead(row)">
+                      <el-icon><Connection /></el-icon>
+                      <span style="margin-left: 4px">增加线索</span>
+                    </div>
+                  </div>
+                </template>
+                <div style="display: flex; align-items: center">
+                  <el-icon><User /></el-icon>
+                  <span style="margin-left: 8px">{{ row.fromAddress }}</span>
+                </div>
+              </el-tooltip>
+            </template>
+          </el-table-column>
           <el-table-column prop="subject" label="主题" />
           <el-table-column prop="receivedDate" label="时间" width="180">
             <template #default="{ row }">
@@ -57,7 +78,7 @@ import { ref, onMounted, watch } from 'vue';
 import { ElMessage, ElLoading } from 'element-plus';
 import { syncMailApi, queryMailApi, getUserMailAccount } from '@/api/mail/email';
 import type { MailDetailVO, UserMailAccountVO } from '@/api/mail/types';
-import { Folder, User } from '@element-plus/icons-vue';
+import { Folder, User, CirclePlus, Connection } from '@element-plus/icons-vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
@@ -73,8 +94,18 @@ const search = ref<string>('');
 const mailAccount = ref<string>('');
 const defaultOpeneds = ref<string[]>(['common']);
 
+// 添加处理方法
+const addCustomer = (row: MailDetailVO) => {
+  // 处理添加客户的逻辑
+  ElMessage.success('添加客户功能待实现');
+};
+
+const addLead = (row: MailDetailVO) => {
+  // 处理添加线索的逻辑
+  ElMessage.success('添加线索功能待实现');
+};
+
 // 获取用户邮箱账号信息
-// email.vue 中的方法
 const initMailAccount = async () => {
   try {
     const res = await getUserMailAccount();
@@ -96,7 +127,7 @@ const syncMailWithLoading = async () => {
   try {
     const res = await syncMailApi({ syncCount: 500 });
     if (res.code === 200) {
-      ElMessage.success(`同步完成，已拉取${res.total}封邮件！`);
+      ElMessage.success(`同步完成，已拉取邮件！`);
       await fetchLocalMails(1);
     } else {
       ElMessage.error(res.msg || '同步失败！');
@@ -119,8 +150,8 @@ const fetchLocalMails = async (page = 1) => {
       folder: currentFolder.value
     });
     if (res.code === 200) {
-      mails.value = res.rows || [];  // 直接使用 res.rows
-      total.value = res.total || 0;  // 直接使用 res.total
+      mails.value = res.rows || []; // 直接使用 res.rows
+      total.value = res.total || 0; // 直接使用 res.total
       currentPage.value = page;
     } else {
       ElMessage.error(res.msg || '本地邮件查询失败！');
