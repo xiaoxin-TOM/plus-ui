@@ -2,10 +2,13 @@
 export interface MailDetailVO {
   id: string;
   fromAddress: string;
-  toAddress: string;
+  toAddresses: string;
+  ccAddresses: string;
+  bccAddresses: string;
   subject: string;
   receivedDate: string;
   bodyText: string;
+  isRead: number;
   // 其他邮件相关字段
 }
 

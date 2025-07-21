@@ -36,7 +36,7 @@
 
       <div class="mail-list">
         <!-- 修改表格，添加行点击事件 -->
-        <el-table :data="mails" style="width: 100%" @row-click="handleRowClick" :row-style="{ cursor: 'pointer' }">
+        <el-table :data="mails" style="width: 100%" @row-click="handleRowClick" :row-style="getRowStyle">
           <el-table-column prop="fromAddress" label="发件人" width="250">
             <template #default="{ row }">
               <el-tooltip placement="top" :show-after="1000">
@@ -52,17 +52,23 @@
                     </div>
                   </div>
                 </template>
-                <div style="display: flex; align-items: center">
+                <div style="display: flex; align-items: center" :style="{ fontWeight: row.isRead === 0 ? 'bold' : 'normal' }">
                   <el-icon><User /></el-icon>
                   <span style="margin-left: 8px">{{ row.fromAddress }}</span>
                 </div>
               </el-tooltip>
             </template>
           </el-table-column>
-          <el-table-column prop="subject" label="主题" />
+
+          <el-table-column prop="subject" label="主题">
+            <template #default="{ row }">
+              <span :style="{ fontWeight: row.isRead === 0 ? 'bold' : 'normal' }">{{ row.subject }}</span>
+            </template>
+          </el-table-column>
+
           <el-table-column prop="receivedDate" label="时间" width="180">
             <template #default="{ row }">
-              {{ formatDate(row.receivedDate) }}
+              <span :style="{ fontWeight: row.isRead === 0 ? 'bold' : 'normal' }">{{ formatDate(row.receivedDate) }}</span>
             </template>
           </el-table-column>
         </el-table>
@@ -73,8 +79,8 @@
       <!-- 在 mail-list div 后添加 -->
       <el-drawer
         v-model="drawerVisible"
-        title="邮件详情"
-        size="50%"
+        title="邮件内容"
+        size="70%"
         :destroy-on-close="true"
         :close-on-click-modal="true"
         :close-on-press-escape="true"
@@ -88,7 +94,15 @@
               </div>
               <div class="info-item">
                 <span class="label">收件人：</span>
-                <span>{{ selectedMail.toAddress }}</span>
+                <span>{{ selectedMail.toAddresses }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">抄送：</span>
+                <span>{{ selectedMail.ccAddresses }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">密送：</span>
+                <span>{{ selectedMail.bccAddresses }}</span>
               </div>
               <div class="info-item">
                 <span class="label">主题：</span>
@@ -139,6 +153,14 @@ const selectedMail = ref<MailDetailVO | null>(null);
 const handleRowClick = (row: MailDetailVO) => {
   selectedMail.value = row;
   drawerVisible.value = true;
+};
+
+// 添加行样式处理函数
+const getRowStyle = (row: MailDetailVO) => {
+  return {
+    cursor: 'pointer',
+    fontWeight: row.isRead === 0 ? 'bold' : 'normal'
+  };
 };
 
 // 添加处理方法
