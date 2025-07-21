@@ -35,7 +35,8 @@
       </div>
 
       <div class="mail-list">
-        <el-table :data="mails" style="width: 100%">
+        <!-- 修改表格，添加行点击事件 -->
+        <el-table :data="mails" style="width: 100%" @row-click="handleRowClick" :row-style="{ cursor: 'pointer' }">
           <el-table-column prop="fromAddress" label="发件人" width="250">
             <template #default="{ row }">
               <el-tooltip placement="top" :show-after="1000">
@@ -69,6 +70,42 @@
           <el-pagination v-model:current-page="currentPage" :page-size="pageSize" :total="total" @current-change="handlePageChange" />
         </div>
       </div>
+      <!-- 在 mail-list div 后添加 -->
+      <el-drawer
+        v-model="drawerVisible"
+        title="邮件详情"
+        size="50%"
+        :destroy-on-close="true"
+        :close-on-click-modal="true"
+        :close-on-press-escape="true"
+      >
+        <template v-if="selectedMail">
+          <div class="mail-detail">
+            <div class="mail-info">
+              <div class="info-item">
+                <span class="label">发件人：</span>
+                <span>{{ selectedMail.fromAddress }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">收件人：</span>
+                <span>{{ selectedMail.toAddress }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">主题：</span>
+                <span>{{ selectedMail.subject }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">时间：</span>
+                <span>{{ formatDate(selectedMail.receivedDate) }}</span>
+              </div>
+            </div>
+            <el-divider />
+            <div class="mail-content-body">
+              <div v-html="selectedMail.bodyText"></div>
+            </div>
+          </div>
+        </template>
+      </el-drawer>
     </div>
   </div>
 </template>
@@ -77,7 +114,7 @@
 import { ref, onMounted, watch } from 'vue';
 import { ElMessage, ElLoading } from 'element-plus';
 import { syncMailApi, queryMailApi, getUserMailAccount } from '@/api/mail/email';
-import type { MailDetailVO, UserMailAccountVO } from '@/api/mail/types';
+import type { MailDetailVO } from '@/api/mail/types';
 import { Folder, User, CirclePlus, Connection } from '@element-plus/icons-vue';
 import { useRouter } from 'vue-router';
 
@@ -93,6 +130,16 @@ const search = ref<string>('');
 // 邮箱状态
 const mailAccount = ref<string>('');
 const defaultOpeneds = ref<string[]>(['common']);
+
+// 抽屉相关状态
+const drawerVisible = ref(false);
+const selectedMail = ref<MailDetailVO | null>(null);
+
+// 处理行点击事件
+const handleRowClick = (row: MailDetailVO) => {
+  selectedMail.value = row;
+  drawerVisible.value = true;
+};
 
 // 添加处理方法
 const addCustomer = (row: MailDetailVO) => {
@@ -192,7 +239,7 @@ watch(search, () => {
 onMounted(async () => {
   const hasAccount = await initMailAccount();
   if (hasAccount) {
-    fetchLocalMails(1);
+    await fetchLocalMails(1);
   }
 });
 </script>

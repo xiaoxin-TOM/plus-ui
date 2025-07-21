@@ -1,10 +1,11 @@
 // 邮件详情类型
 export interface MailDetailVO {
   id: string;
-  from: string;
+  fromAddress: string;
+  toAddress: string;
   subject: string;
   receivedDate: string;
-  content?: string;
+  bodyText: string;
   // 其他邮件相关字段
 }
 
